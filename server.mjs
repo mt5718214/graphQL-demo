@@ -34,7 +34,7 @@ const typeDefs = `#graphql
   type Query {
     hello: String
     getTodoList: [Todo]
-    getTodo(id: String): Todo
+    getTodo(id: String!): Todo
   }
 
   type Todo {
