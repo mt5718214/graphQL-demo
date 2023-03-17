@@ -20,6 +20,12 @@ const todoList = [
     description: "description3",
     completed: true,
   },
+  {
+    id: 4,
+    title: "todolist4",
+    description: "",
+    completed: false,
+  },
 ];
 
 // The GraphQL schema
@@ -50,6 +56,15 @@ const resolvers = {
       const { id } = args;
       console.log(id);
       return todoList.find((todo) => todo.id === Number(id));
+    },
+  },
+  Todo: {
+    description: (parent, args, context) => {
+      console.log(parent.description);
+      if (!parent.description) {
+        return "no description";
+      }
+      return parent.description;
     },
   },
 };
