@@ -43,10 +43,23 @@ const typeDefs = `#graphql
     description: String
     completed: Boolean!
   }
+
+  type Mutation {
+    addTodo(title: String!, description: String): Todo
+    toggleCompleted(id: ID!): Todo
+  }
 `;
 
 // A map of functions which return data for the schema.
 const resolvers = {
+  Todo: {
+    description: (parent, args, context) => {
+      if (!parent.description) {
+        return "no description";
+      }
+      return parent.description;
+    },
+  },
   Query: {
     hello: () => "world",
     getTodoList: () => {
@@ -58,13 +71,24 @@ const resolvers = {
       return todoList.find((todo) => todo.id === Number(id));
     },
   },
-  Todo: {
-    description: (parent, args, context) => {
-      console.log(parent.description);
-      if (!parent.description) {
-        return "no description";
-      }
-      return parent.description;
+  Mutation: {
+    addTodo: (_root, args, _context) => {
+      const { title, description } = args;
+      todoList.push({
+        id: todoList.length + 1,
+        title,
+        description,
+        completed: false,
+      });
+
+      return todoList[todoList.length - 1];
+    },
+    toggleCompleted: (_root, args, _context) => {
+      const { id } = args;
+      const todo = todoList.find((todo) => todo.id === Number(id));
+      todo.completed = !todo.completed;
+
+      return todo;
     },
   },
 };
