@@ -1,5 +1,6 @@
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
+import { GraphQLError } from "graphql";
 
 const todoList = [
   {
@@ -67,7 +68,8 @@ const resolvers = {
     },
     getTodo: (root, args, context) => {
       const { id } = args;
-      console.log(id);
+      // const { token } = context;
+      // console.log(token);
       return todoList.find((todo) => todo.id === Number(id));
     },
   },
@@ -98,5 +100,31 @@ const server = new ApolloServer({
   resolvers,
 });
 
-const { url } = await startStandaloneServer(server);
+const { url } = await startStandaloneServer(server, {
+  // Note: This example uses the `req` argument to access headers,
+  // but the arguments received by `context` vary by integration.
+  // This means they vary for Express, Fastify, Lambda, etc.
+
+  // For `startStandaloneServer`, the `req` and `res` objects are
+  // `http.IncomingMessage` and `http.ServerResponse` types.
+  context: async ({ req, res }) => {
+    // Get the user token from the headers.
+    const token = req.headers?.authorization?.split(" ")[1] || "";
+    console.log("token", token);
+    // Try to retrieve a user with the token
+    // const user = await getUser(token);
+    if (!token) {
+      console.log("throw graphqlerror");
+      throw new GraphQLError("User is not authenticated", {
+        extensions: {
+          code: "UNAUTHENTICATED",
+          http: { status: 401 },
+        },
+      });
+    }
+
+    // Add the user to the context
+    return { token };
+  },
+});
 console.log(`🚀 Server ready at ${url}`);
